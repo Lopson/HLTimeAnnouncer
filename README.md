@@ -1,4 +1,4 @@
-# Half-Life 1 VOX Voice Announcer
+# Half-Life 1 VOX Voice Hour Announcer
 
 I recently found this feature on macOS where you can have it announce the hours, and I looked for it on Windows but couldn't find it. Not wanting to install yet another program to make it happen, I decided to create my own little thing.
 
