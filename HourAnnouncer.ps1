@@ -48,8 +48,34 @@ function Read-HourOutLoud {
         }
 
         (New-Object System.Media.SoundPlayer $WordPath).PlaySync();
-    }    
+    }
 }
 
-[int]$CurrentHour = ([datetime]::Now).Hour;
-Read-HourOutLoud $CurrentHour;
+[string]$MutexName = "Global\HLTimeAnnouncerMutex";
+[System.Threading.Mutex]$Mutex = New-Object System.Threading.Mutex(
+    $false, $MutexName);
+
+try {
+    # Attempt to acquire the mutex.
+    # Wait 0ms to avoid blocking; return immediately.
+    # $false = do not exit context (required for non-GUI apps like PowerShell)
+    $MutexAcquired = $Mutex.WaitOne(0, $false);
+
+    # Mutex not acquired, another instance of script is already running. Exit.
+    if (-not $MutexAcquired) {
+        exit 1;
+    }
+
+    # Run the announcer logic.
+    [int]$CurrentHour = ([datetime]::Now).Hour;
+    Read-HourOutLoud $CurrentHour;
+}
+finally {
+    # Release the mutex if we acquired it (critical to avoid orphaned locks).
+    if ($mutexAcquired) {
+        $Mutex.ReleaseMutex();
+    }
+
+    # Clean up the mutex object.
+    $Mutex.Dispose();
+}
