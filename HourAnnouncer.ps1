@@ -40,14 +40,17 @@ function Read-HourOutLoud {
         24 { $VoiceLines += "twenty", "four", "hours"; }
     }
 
-    foreach ($word in $VoiceLines) {
-        $WordPath = Join-Path $PSScriptRoot "vox" "$word.wav";
-        if (-not (Test-Path -LiteralPath $WordPath -PathType "Leaf")) {
-            throw [System.IO.FileNotFoundException] (
-                "Couldn't find file $WordPath");
-        }
+    if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
+            [System.Runtime.InteropServices.OSPlatform]::Windows)) {
+        foreach ($word in $VoiceLines) {
+            $WordPath = Join-Path $PSScriptRoot "vox" "$word.wav";
+            if (-not (Test-Path -LiteralPath $WordPath -PathType "Leaf")) {
+                throw [System.IO.FileNotFoundException] (
+                    "Couldn't find file $WordPath");
+            }
 
-        (New-Object System.Media.SoundPlayer $WordPath).PlaySync();
+            (New-Object System.Media.SoundPlayer $WordPath).PlaySync();
+        }
     }
 }
 
@@ -56,6 +59,15 @@ function Read-HourOutLoud {
     $false, $MutexName);
 
 try {
+    # Only run logic if we're at the top of the hour.
+    # This is yet another piece of logic to minimize the number of instances
+    # when Windows scheduler attempts to run this script after waking up
+    # from sleep or when the scheduler runs this task twice in a row.
+    [int]$CurrentMinute = ([datetime]::Now).Minute;
+    if ($CurrentMinute -ne 0) {
+        exit;
+    }
+
     # Attempt to acquire the mutex.
     # Wait 0ms to avoid blocking; return immediately.
     # $false = do not exit context (required for non-GUI apps like PowerShell)
