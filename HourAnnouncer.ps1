@@ -1,28 +1,50 @@
 #!/usr/bin/env pwsh
 $ErrorActionPreference = "Stop"
-[string[]]$VOICE_START = @("doop", "_period", "it", "is", "now");
+[string[]]$VOX_VOICE_START = @("doop", "_period", "it", "is", "now");
+[string[]]$FVOX_VOICE_START = @("bell", "_period", "time_is_now");
+[string]$ANNOUNCER_TO_USE = "fvox";
+[bool]$FORCE_RUN = $false;
 
 function Read-HourOutLoud {
     [OutputType([void])]
     param (
         [Parameter(Mandatory = $true)]
         [ValidateRange(0, 24)]
-        [int]$CurrentHour
+        [int]$CurrentHour,
+
+        [ValidateSet("vox", "fvox")]
+        [string]$Announcer = "vox"
     )
 
-    [string[]]$VoiceLines = $VOICE_START.Clone();
+    # Determine which start of announcement we'll be using.
+    switch ($Announcer) {
+        "vox"  { [string[]]$VoiceLines = $VOX_VOICE_START.Clone();  }
+        "fvox" { [string[]]$VoiceLines = $FVOX_VOICE_START.Clone(); }
+    }
 
+    # fvox announcer doesn't have voice line for zero.
+    if ($CurrentHour -eq 0 -and $Announcer -eq "fvox") {
+        $CurrentHour = 24;
+    }
+
+    # Build the list of voice lines to use.
     switch ($CurrentHour) {
-        0 { $VoiceLines += "zero", "hours"; }
-        1 { $VoiceLines += "one", "hour"; }
-        2 { $VoiceLines += "two", "hours"; }
-        3 { $VoiceLines += "three", "hours"; }
-        4 { $VoiceLines += "four", "hours"; }
-        5 { $VoiceLines += "five", "hours"; }
-        6 { $VoiceLines += "six", "hours"; }
-        7 { $VoiceLines += "seven", "hours"; }
-        8 { $VoiceLines += "eight", "hours"; }
-        9 { $VoiceLines += "nine", "hours"; }
+        0  { $VoiceLines += "zero", "hours"; }
+        1  {
+            switch ($Announcer) {
+                "vox"  { $VoiceLines += "one", "hour"; }
+                # fvox announcer doesn't have voice line for "hour".
+                "fvox" { $VoiceLines += "one", "hours"; }
+            }
+        }
+        2  { $VoiceLines += "two", "hours"; }
+        3  { $VoiceLines += "three", "hours"; }
+        4  { $VoiceLines += "four", "hours"; }
+        5  { $VoiceLines += "five", "hours"; }
+        6  { $VoiceLines += "six", "hours"; }
+        7  { $VoiceLines += "seven", "hours"; }
+        8  { $VoiceLines += "eight", "hours"; }
+        9  { $VoiceLines += "nine", "hours"; }
         10 { $VoiceLines += "ten", "hours"; }
         11 { $VoiceLines += "eleven", "hours"; }
         12 { $VoiceLines += "twelve", "hours"; }
@@ -43,7 +65,7 @@ function Read-HourOutLoud {
     if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
             [System.Runtime.InteropServices.OSPlatform]::Windows)) {
         foreach ($word in $VoiceLines) {
-            $WordPath = Join-Path $PSScriptRoot "vox" "$word.wav";
+            $WordPath = Join-Path $PSScriptRoot $Announcer "$word.wav";
             if (-not (Test-Path -LiteralPath $WordPath -PathType "Leaf")) {
                 throw [System.IO.FileNotFoundException] (
                     "Couldn't find file $WordPath");
@@ -64,7 +86,7 @@ try {
     # when Windows scheduler attempts to run this script after waking up
     # from sleep or when the scheduler runs this task twice in a row.
     [int]$CurrentMinute = ([datetime]::Now).Minute;
-    if ($CurrentMinute -ne 0) {
+    if ($CurrentMinute -ne 0 -and -not $FORCE_RUN) {
         exit;
     }
 
@@ -80,7 +102,7 @@ try {
 
     # Run the announcer logic.
     [int]$CurrentHour = ([datetime]::Now).Hour;
-    Read-HourOutLoud $CurrentHour;
+    Read-HourOutLoud $CurrentHour -Announcer $ANNOUNCER_TO_USE;
 }
 finally {
     # Release the mutex if we acquired it (critical to avoid orphaned locks).
