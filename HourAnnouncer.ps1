@@ -3,7 +3,25 @@ $ErrorActionPreference = "Stop"
 [string[]]$VOX_VOICE_START = @("doop", "_period", "it", "is", "now");
 [string[]]$FVOX_VOICE_START = @("bell", "_period", "time_is_now");
 [string]$ANNOUNCER_TO_USE = "fvox";
+[bool]$FOLLOW_THEME = $true;
 [bool]$FORCE_RUN = $false;
+
+enum SystemThemes : int {
+    light = 0
+    dark  = 1
+}
+
+function Get-CurrentSystemTheme {
+    [OutputType([SystemThemes])]
+    param ()
+
+    if ((Get-ItemProperty -Path `
+            "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" `
+            -Name "SystemUsesLightTheme").SystemUsesLightTheme -eq 0) {
+        return [SystemThemes]::dark;
+    }
+    return [SystemThemes]::light;
+}
 
 function Read-HourOutLoud {
     [OutputType([void])]
@@ -79,6 +97,10 @@ function Read-HourOutLoud {
 [string]$MutexName = "Global\HLTimeAnnouncerMutex";
 [System.Threading.Mutex]$Mutex = New-Object System.Threading.Mutex(
     $false, $MutexName);
+
+if ($FOLLOW_THEME -and ((Get-CurrentSystemTheme) -eq [SystemThemes]::light)) {
+    [string]$ANNOUNCER_TO_USE = "vox";
+}
 
 try {
     # Only run logic if we're at the top of the hour.

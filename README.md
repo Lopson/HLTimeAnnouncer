@@ -19,4 +19,10 @@ Just get a scheduled task running this thing every hour. Make sure the action is
 wscript.exe "{PATH_TO_SCRIPT}\run_hidden.vbs"
 ```
 
-Be sure to change the path to the VBS script accordingly. Yes, we still need this type of hack to make sure that a scheduled task's window remains completely hidden, it's insane, I know. 😑 Also, be sure to change the variable `$ANNOUNCER_TO_USE` in the PS1 file so as to select the announcer you want to use.
+Be sure to change the path to the VBS script accordingly. Yes, we still need this type of hack to make sure that a scheduled task's window remains completely hidden, it's insane, I know. 😑
+
+There's a couple of variables that are relevant to this script's configuration:
+
+- `$ANNOUNCER_TO_USE`: Defines the default announcer voice. Can be set to `vox` or `fvox`.
+- `$FOLLOW_THEME`: On Windows 11, the announcer voice can change depending on the current system theme. If this is set to `$true`, then it'll use `vox` for light theme and `fvox` for dark theme.
+- `$FORCE_RUN`: If set to `$true`, this will skip the check to see if the time the script is running at is minute 0 of a given hour.
