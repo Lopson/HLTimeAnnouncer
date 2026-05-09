@@ -26,3 +26,5 @@ There's a couple of variables that are relevant to this script's configuration:
 - `$ANNOUNCER_TO_USE`: Defines the default announcer voice. Can be set to `vox` or `fvox`.
 - `$FOLLOW_THEME`: On Windows 11, the announcer voice can change depending on the current system theme. If this is set to `$true`, then it'll use `vox` for light theme and `fvox` for dark theme.
 - `$FORCE_RUN`: If set to `$true`, this will skip the check to see if the time the script is running at is minute 0 of a given hour.
+- `$READ_OUT_LOUD`: If set to `$true`, the script will play the top of the hour chime and read out the hour. If set to `$false`, it'll only play the chime.
+- `$READ_DURING_MEDIA_PLAYBACK`: Only relevant if `$READ_OUT_LOUD` is set to `$true`. If this one is set to `$true`, the script will read out the hour if media is being played back on the machine; setting this to `$false` does the opposite.
