@@ -217,7 +217,8 @@ function Read-HourOutLoud {
     $false, $MutexName);
 
 if ($FOLLOW_THEME) {
-    if ((Get-CurrentSystemTheme) -contains @([SystemThemes]::light, [SystemThemes]::undefined)) {
+    if ((Get-CurrentSystemTheme) -contains @(
+            [SystemThemes]::light, [SystemThemes]::undefined)) {
         [string]$ANNOUNCER_TO_USE = "vox";
     }
     elseif ((Get-CurrentSystemTheme) -eq [SystemThemes]::dark) {
