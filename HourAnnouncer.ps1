@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 [string[]]$FVOX_READING_START = @("_period", "time_is_now");
 [string]$ANNOUNCER_TO_USE = "fvox";
 [bool]$FOLLOW_THEME = $true;
-[bool]$FORCE_RUN = $true;
+[bool]$FORCE_RUN = $false;
 [bool]$READ_OUT_LOUD = $true;
 [bool]$READ_DURING_MEDIA_PLAYBACK = $false;
 
