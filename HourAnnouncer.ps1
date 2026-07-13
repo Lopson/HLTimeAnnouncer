@@ -9,6 +9,7 @@ $ErrorActionPreference = "Stop"
 [bool]$FORCE_RUN = $false;
 [bool]$READ_OUT_LOUD = $true;
 [bool]$READ_DURING_MEDIA_PLAYBACK = $false;
+[bool]$READ_DURING_VIDEOGAMES = $false;
 
 # Function for getting the current status of all media playback applications
 # on Windows platforms. This relies on System Media Transport Controls, which
@@ -102,6 +103,31 @@ function Get-MediaActiveStatus {
     return $result;
 }
 
+# Tests if a Steam game is running.
+function Test-SteamGameRunning {
+    [OutputType([bool])]
+
+    [bool]$result = $false;
+
+    if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
+            [System.Runtime.InteropServices.OSPlatform]::Windows)) {
+        $SteamRegistry = Get-ItemProperty -Path "HKCU:\Software\Valve\Steam";
+        if ($SteamRegistry -and $SteamRegistry.RunningAppID -ne 0) {
+            $result = $true;
+        }
+    }
+
+    return $result;
+}
+
+# Tells us if a videogame is currently running in our system.
+function Test-VideogameRunning {
+    [OutputType([bool])]
+
+    [bool]$result = (Test-VideogameRunning);
+    return $result;
+}
+
 enum SystemThemes : int {
     light
     dark
@@ -154,9 +180,12 @@ function Read-HourOutLoud {
     }
 
     [bool]$isMediaPlayingBack = Get-MediaActiveStatus;
+    [bool]$isVideogameRunning = Test-VideogameRunning;
     if ($READ_OUT_LOUD -and (
             -not $isMediaPlayingBack -or (
-                $isMediaPlayingBack -and $READ_DURING_MEDIA_PLAYBACK))) {
+                $isMediaPlayingBack -and $READ_DURING_MEDIA_PLAYBACK)) -and (
+            -not $isVideogameRunning -or (
+                $isVideogameRunning -and $READ_DURING_VIDEOGAMES))) {
         switch ($Announcer) {
            "vox"  { $VoiceLines += $VOX_READING_START;  }
            "fvox" { $VoiceLines += $FVOX_READING_START; }
