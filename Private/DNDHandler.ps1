@@ -1,10 +1,15 @@
 <#
 .NOTES
+The following copyright notice applies to all of the C# code used to obtain
+the current Quiet Hours state:
+
     Author: Adam J. Kessel
     Date: May 19, 2026
     Copyright: (c) 2026 Adam J. Kessel.
 
     This is free and open-source software, subject to the 2-Clause BSD License.  https://opensource.org/license/bsd-2-clause
+
+The 2-Clause BSD License can be found in the file DND-LICENSE.txt.
 #>
 #Requires -version 5.1
 
