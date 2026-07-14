@@ -1,0 +1,11 @@
+[string[]]$VOX_VOICE_START = @("doop");
+[string[]]$VOX_READING_START = @("_period", "it", "is", "now");
+[string[]]$FVOX_VOICE_START = @("bell");
+[string[]]$FVOX_READING_START = @("_period", "time_is_now");
+[string]$ANNOUNCERS_FOLDER = "Voices";
+[string]$ANNOUNCER_TO_USE = "fvox";
+[bool]$FOLLOW_THEME = $true;
+[bool]$FORCE_RUN = $false;
+[bool]$READ_OUT_LOUD = $true;
+[bool]$READ_DURING_MEDIA_PLAYBACK = $false;
+[bool]$READ_DURING_VIDEOGAMES = $false;
