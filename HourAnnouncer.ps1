@@ -12,6 +12,14 @@ foreach ($private in (
     . $private.FullName;
 }
 
+# Source all voice pack definitions.
+foreach ($voiceFile in (
+        Get-ChildItem (Join-Path $PSScriptRoot $ANNOUNCERS_FOLDER) `
+            -Recurse -Filter "*.ps1" -ErrorAction SilentlyContinue)
+) {
+    . $voiceFile.FullName;
+}
+
 # The function that performs the hour announcement playback.
 function Read-HourOutLoud {
     [OutputType([void])]
@@ -56,46 +64,46 @@ function Read-HourOutLoud {
             0  { $VoiceLines += "zero", "hours"; }
             1  {
                 switch ($Announcer) {
-                    "vox"  { $VoiceLines += "one", "hour"; }
+                    "vox"  { $VoiceLines += "one", "hour";  }
                     # fvox announcer doesn't have voice line for "hour".
                     "fvox" { $VoiceLines += "one", "hours"; }
                 }
             }
-            2  { $VoiceLines += "two", "hours"; }
-            3  { $VoiceLines += "three", "hours"; }
-            4  { $VoiceLines += "four", "hours"; }
-            5  { $VoiceLines += "five", "hours"; }
-            6  { $VoiceLines += "six", "hours"; }
-            7  { $VoiceLines += "seven", "hours"; }
-            8  { $VoiceLines += "eight", "hours"; }
-            9  { $VoiceLines += "nine", "hours"; }
-            10 { $VoiceLines += "ten", "hours"; }
-            11 { $VoiceLines += "eleven", "hours"; }
-            12 { $VoiceLines += "twelve", "hours"; }
-            13 { $VoiceLines += "thirteen", "hours"; }
-            14 { $VoiceLines += "fourteen", "hours"; }
-            15 { $VoiceLines += "fifteen", "hours"; }
-            16 { $VoiceLines += "sixteen", "hours"; }
-            17 { $VoiceLines += "seventeen", "hours"; }
-            18 { $VoiceLines += "eighteen", "hours"; }
-            19 { $VoiceLines += "nineteen", "hours"; }
-            20 { $VoiceLines += "twenty", "hours"; }
-            21 { $VoiceLines += "twenty", "one", "hours"; }
-            22 { $VoiceLines += "twenty", "two", "hours"; }
+            2  { $VoiceLines += "two", "hours";             }
+            3  { $VoiceLines += "three", "hours";           }
+            4  { $VoiceLines += "four", "hours";            }
+            5  { $VoiceLines += "five", "hours";            }
+            6  { $VoiceLines += "six", "hours";             }
+            7  { $VoiceLines += "seven", "hours";           }
+            8  { $VoiceLines += "eight", "hours";           }
+            9  { $VoiceLines += "nine", "hours";            }
+            10 { $VoiceLines += "ten", "hours";             }
+            11 { $VoiceLines += "eleven", "hours";          }
+            12 { $VoiceLines += "twelve", "hours";          }
+            13 { $VoiceLines += "thirteen", "hours";        }
+            14 { $VoiceLines += "fourteen", "hours";        }
+            15 { $VoiceLines += "fifteen", "hours";         }
+            16 { $VoiceLines += "sixteen", "hours";         }
+            17 { $VoiceLines += "seventeen", "hours";       }
+            18 { $VoiceLines += "eighteen", "hours";        }
+            19 { $VoiceLines += "nineteen", "hours";        }
+            20 { $VoiceLines += "twenty", "hours";          }
+            21 { $VoiceLines += "twenty", "one", "hours";   }
+            22 { $VoiceLines += "twenty", "two", "hours";   }
             23 { $VoiceLines += "twenty", "three", "hours"; }
-            24 { $VoiceLines += "twenty", "four", "hours"; }
+            24 { $VoiceLines += "twenty", "four", "hours";  }
         }
     }
 
-    if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
-            [System.Runtime.InteropServices.OSPlatform]::Windows)) {
-        foreach ($word in $VoiceLines) {
-            $WordPath = Join-Path $PSScriptRoot $ANNOUNCERS_FOLDER $Announcer "$word.wav";
-            if (-not (Test-Path -LiteralPath $WordPath -PathType "Leaf")) {
-                throw [System.IO.FileNotFoundException] (
-                    "Couldn't find file $WordPath");
-            }
-
+    foreach ($word in $VoiceLines) {
+        $WordPath = Join-Path $PSScriptRoot $ANNOUNCERS_FOLDER $Announcer "$word.wav";
+        if (-not (Test-Path -LiteralPath $WordPath -PathType "Leaf")) {
+            throw [System.IO.FileNotFoundException] (
+                "Couldn't find file $WordPath");
+        }
+        
+        if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
+                [System.Runtime.InteropServices.OSPlatform]::Windows)) {
             (New-Object System.Media.SoundPlayer $WordPath).PlaySync();
         }
     }
