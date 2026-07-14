@@ -4,6 +4,7 @@ $ErrorActionPreference = "Stop"
 [string[]]$VOX_READING_START = @("_period", "it", "is", "now");
 [string[]]$FVOX_VOICE_START = @("bell");
 [string[]]$FVOX_READING_START = @("_period", "time_is_now");
+[string]$ANNOUNCERS_FOLDER = "Voices";
 [string]$ANNOUNCER_TO_USE = "fvox";
 [bool]$FOLLOW_THEME = $true;
 [bool]$FORCE_RUN = $false;
@@ -230,7 +231,7 @@ function Read-HourOutLoud {
     if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
             [System.Runtime.InteropServices.OSPlatform]::Windows)) {
         foreach ($word in $VoiceLines) {
-            $WordPath = Join-Path $PSScriptRoot $Announcer "$word.wav";
+            $WordPath = Join-Path $PSScriptRoot $ANNOUNCERS_FOLDER $Announcer "$word.wav";
             if (-not (Test-Path -LiteralPath $WordPath -PathType "Leaf")) {
                 throw [System.IO.FileNotFoundException] (
                     "Couldn't find file $WordPath");
