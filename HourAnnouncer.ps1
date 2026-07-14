@@ -4,6 +4,14 @@ $ErrorActionPreference = "Stop"
 # Source the configuration file.
 . (Get-ChildItem (Join-Path $PSScriptRoot "Configuration.ps1")).FullName;
 
+# Source all classes.
+foreach ($class in (
+        Get-ChildItem (Join-Path $PSScriptRoot "Classes") `
+            -ErrorAction SilentlyContinue)
+) {
+    . $class.FullName;
+}
+
 # Source all auxiliary functions.
 foreach ($private in (
         Get-ChildItem (Join-Path $PSScriptRoot "Private") `
@@ -13,11 +21,19 @@ foreach ($private in (
 }
 
 # Source all voice pack definitions.
+[hashtable]$Global:VoicePacks = @{};
 foreach ($voiceFile in (
         Get-ChildItem (Join-Path $PSScriptRoot $ANNOUNCERS_FOLDER) `
             -Recurse -Filter "*.ps1" -ErrorAction SilentlyContinue)
 ) {
     . $voiceFile.FullName;
+}
+
+# Setup argument validation for usable packs.
+class ValidVoicePacks : System.Management.Automation.IValidateSetValuesGenerator {
+    [string[]] GetValidValues() {
+        return $Global:VoicePacks.Keys;
+    }
 }
 
 # The function that performs the hour announcement playback.
@@ -28,20 +44,13 @@ function Read-HourOutLoud {
         [ValidateRange(0, 24)]
         [int]$CurrentHour,
 
-        [ValidateSet("vox", "fvox")]
-        [string]$Announcer = "vox"
+        [Parameter(Mandatory = $true)]
+        [ValidateSet([ValidVoicePacks])]
+        [string]$Announcer
     )
 
     # Determine which start of announcement we'll be using.
-    switch ($Announcer) {
-        "vox"  { [string[]]$VoiceLines = $VOX_VOICE_START.Clone();  }
-        "fvox" { [string[]]$VoiceLines = $FVOX_VOICE_START.Clone(); }
-    }
-
-    # fvox announcer doesn't have voice line for zero.
-    if ($CurrentHour -eq 0 -and $Announcer -eq "fvox") {
-        $CurrentHour = 24;
-    }
+    [string[]]$VoiceLines = $Global:VoicePacks[$Announcer].VoiceStart;
 
     [bool]$isMediaPlayingBack = Get-MediaActiveStatus;
     [bool]$isVideogameRunning = Test-VideogameRunning;
@@ -54,54 +63,24 @@ function Read-HourOutLoud {
             -not $isDndActive -or (
                 $isDndActive -and $READ_DURING_DND))
     ) {
-        switch ($Announcer) {
-           "vox"  { $VoiceLines += $VOX_READING_START;  }
-           "fvox" { $VoiceLines += $FVOX_READING_START; }
-        }
+        # Get the start of the reading out loud portion.
+        $VoiceLines += $Global:VoicePacks[$Announcer].ReadingStart;
 
-        # Build the list of voice lines to use.
-        switch ($CurrentHour) {
-            0  { $VoiceLines += "zero", "hours"; }
-            1  {
-                switch ($Announcer) {
-                    "vox"  { $VoiceLines += "one", "hour";  }
-                    # fvox announcer doesn't have voice line for "hour".
-                    "fvox" { $VoiceLines += "one", "hours"; }
-                }
-            }
-            2  { $VoiceLines += "two", "hours";             }
-            3  { $VoiceLines += "three", "hours";           }
-            4  { $VoiceLines += "four", "hours";            }
-            5  { $VoiceLines += "five", "hours";            }
-            6  { $VoiceLines += "six", "hours";             }
-            7  { $VoiceLines += "seven", "hours";           }
-            8  { $VoiceLines += "eight", "hours";           }
-            9  { $VoiceLines += "nine", "hours";            }
-            10 { $VoiceLines += "ten", "hours";             }
-            11 { $VoiceLines += "eleven", "hours";          }
-            12 { $VoiceLines += "twelve", "hours";          }
-            13 { $VoiceLines += "thirteen", "hours";        }
-            14 { $VoiceLines += "fourteen", "hours";        }
-            15 { $VoiceLines += "fifteen", "hours";         }
-            16 { $VoiceLines += "sixteen", "hours";         }
-            17 { $VoiceLines += "seventeen", "hours";       }
-            18 { $VoiceLines += "eighteen", "hours";        }
-            19 { $VoiceLines += "nineteen", "hours";        }
-            20 { $VoiceLines += "twenty", "hours";          }
-            21 { $VoiceLines += "twenty", "one", "hours";   }
-            22 { $VoiceLines += "twenty", "two", "hours";   }
-            23 { $VoiceLines += "twenty", "three", "hours"; }
-            24 { $VoiceLines += "twenty", "four", "hours";  }
-        }
+        # Get the voice lines to use.
+        $VoiceLines += $Global:VoicePacks[$Announcer].HourLines[$CurrentHour];
     }
 
     foreach ($word in $VoiceLines) {
-        $WordPath = Join-Path $PSScriptRoot $ANNOUNCERS_FOLDER $Announcer "$word.wav";
+        $WordPath = (Join-Path $PSScriptRoot `
+            $ANNOUNCERS_FOLDER $Announcer `
+            "$word.$($Global:VoicePacks[$Announcer].FileExtension)");
+        
         if (-not (Test-Path -LiteralPath $WordPath -PathType "Leaf")) {
             throw [System.IO.FileNotFoundException] (
                 "Couldn't find file $WordPath");
         }
         
+        # Play back each of the audio files.
         if ([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
                 [System.Runtime.InteropServices.OSPlatform]::Windows)) {
             (New-Object System.Media.SoundPlayer $WordPath).PlaySync();
