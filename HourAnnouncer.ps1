@@ -15,7 +15,7 @@ foreach ($class in (
 # Source all auxiliary functions.
 foreach ($private in (
         Get-ChildItem (Join-Path $PSScriptRoot "Private") `
-            -ErrorAction SilentlyContinue)
+            -Filter "*.ps1" -ErrorAction SilentlyContinue)
 ) {
     . $private.FullName;
 }
