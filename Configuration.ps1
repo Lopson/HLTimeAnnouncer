@@ -9,3 +9,4 @@
 [bool]$READ_OUT_LOUD = $true;
 [bool]$READ_DURING_MEDIA_PLAYBACK = $false;
 [bool]$READ_DURING_VIDEOGAMES = $false;
+[bool]$READ_DURING_DND = $false;

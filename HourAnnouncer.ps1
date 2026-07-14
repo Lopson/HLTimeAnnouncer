@@ -37,11 +37,15 @@ function Read-HourOutLoud {
 
     [bool]$isMediaPlayingBack = Get-MediaActiveStatus;
     [bool]$isVideogameRunning = Test-VideogameRunning;
+    [bool]$isDndActive = Get-DndStatus -eq [DndStatus]::disabled ? $false : $true;
     if ($READ_OUT_LOUD -and (
             -not $isMediaPlayingBack -or (
                 $isMediaPlayingBack -and $READ_DURING_MEDIA_PLAYBACK)) -and (
             -not $isVideogameRunning -or (
-                $isVideogameRunning -and $READ_DURING_VIDEOGAMES))) {
+                $isVideogameRunning -and $READ_DURING_VIDEOGAMES)) -and (
+            -not $isDndActive -or (
+                $isDndActive -and $READ_DURING_DND))
+    ) {
         switch ($Announcer) {
            "vox"  { $VoiceLines += $VOX_READING_START;  }
            "fvox" { $VoiceLines += $FVOX_READING_START; }
