@@ -53,7 +53,7 @@ function Test-RunningFullscreenApps {
         $hresult = [NotificationState]::SHQueryUserNotificationState([ref]$state);
 
         if( $hresult -lt 0 ) {
-            throw "SHQueryUserNotificationState failed"
+            throw "SHQueryUserNotificationState failed";
         }
         
         switch($state) {
